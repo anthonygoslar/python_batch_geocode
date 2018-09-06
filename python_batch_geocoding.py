@@ -49,6 +49,10 @@ input_filename = "data/PPR-2015.csv"
 address_column_name = "Address"
 # Return Full Google Results? If True, full JSON results from Google are included in output
 RETURN_FULL_RESULTS = False
+# Add bounds so that you get better results for the area you want to search
+# the layout is "topleft corner|bottomright corner" as "LON,LAT|LON,LAT" 
+# for e.g. Cape Town may be "-33,17.5|-34.5,19"
+BOUNDS= None
 
 #------------------ DATA LOADING --------------------------------
 
@@ -70,7 +74,7 @@ addresses = (data[address_column_name] + ',' + data['County'] + ',Ireland').toli
 
 #------------------	FUNCTION DEFINITIONS ------------------------
 
-def get_google_results(address, api_key=None, return_full_response=False):
+def get_google_results(address, api_key=API_KEY, bounds=BOUNDS, return_full_response=False):
     """
     Get geocode results from Google Maps Geocoding API.
     
@@ -85,6 +89,10 @@ def get_google_results(address, api_key=None, return_full_response=False):
     """
     # Set up your Geocoding url
     geocode_url = "https://maps.googleapis.com/maps/api/geocode/json?address={}".format(address)
+
+    if bounds is not None:
+	geocode_url = geocode_url + "&bounds={}.format(bounds)
+
     if api_key is not None:
         geocode_url = geocode_url + "&key={}".format(api_key)
         
@@ -129,7 +137,7 @@ def get_google_results(address, api_key=None, return_full_response=False):
 #------------------ PROCESSING LOOP -----------------------------
 
 # Ensure, before we start, that the API key is ok/valid, and internet access is ok
-test_result = get_google_results("London, England", API_KEY, RETURN_FULL_RESULTS)
+test_result = get_google_results("London, England", API_KEY, BOUNDS, RETURN_FULL_RESULTS)
 if (test_result['status'] != 'OK') or (test_result['formatted_address'] != 'London, UK'):
     logger.warning("There was an error when testing the Google Geocoder.")
     raise ConnectionError('Problem with test results from Google Geocode - check your API key and internet connection.')
